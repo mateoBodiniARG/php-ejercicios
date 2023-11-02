@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+h1 {
+    color: #333;
+}
+form {
+    margin: 20px;
+}
+input[type="number"] {
+    padding: 5px;
+    font-size: 16px;
+}
+button[type="submit"] {
+    padding: 5px 10px;
+    font-size: 16px;
+    background-color: #0074cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
