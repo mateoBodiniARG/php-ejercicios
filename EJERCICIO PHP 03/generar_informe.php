@@ -21,11 +21,13 @@ if ($conn->connect_error) {
 }
 
 // Consulta para obtener el informe
-$query = "SELECT alumnos.AluNombre, COUNT(examenes.ExaFecha) AS veces_rendidas, 
-COUNT(CASE WHEN examenes.ExaNota >= 7 THEN 1 ELSE NULL END) AS aprobados,
-AVG(examenes.ExaNota) AS promedio
+$query = 
+"SELECT alumnos.AluNombre, 
+COUNT(examenes.ExaFecha) AS veces_rendidas, 
+SUM(CASE WHEN examenes.ExaNota >= 7 THEN 1 ELSE 0 END) AS aprobados,
+SUM(CASE WHEN examenes.ExaNota >= 7 THEN examenes.ExaNota ELSE 0 END) AS suma_notas_aprobadas 
 FROM ALUMNOS 
-INNER JOIN EXAMENES ON alumnos.AluLegajo = examenes.AluLegajo
+LEFT JOIN EXAMENES ON alumnos.AluLegajo = examenes.AluLegajo
 GROUP BY alumnos.AluNombre";
 
 $result = $conn->query($query);
@@ -33,21 +35,25 @@ $result = $conn->query($query);
 if ($result->num_rows > 0) {
     echo '<h2>Informe</h2>';
     echo '<table>';
-    echo '<tr><th>Nombre del Alumno</th><th>Cantidad de veces rendidas</th><th>Cantidad de aprobados</th><th>Promedio</th></tr>';
+    echo '<tr><th>Nombre del Alumno</th><th>Cantidad de veces rendidas</th><th>Cantidad de aprobados</th><th>Promedio de aprobados</th></tr>';
 
     while ($row = $result->fetch_assoc()) {
         echo '<tr>';
         echo '<td>' . $row["AluNombre"] . '</td>';
         echo '<td>' . $row["veces_rendidas"] . '</td>';
         echo '<td>' . $row["aprobados"] . '</td>';
-        echo '<td>' . number_format($row["promedio"], 2) . '</td>';
+        if ($row["aprobados"] > 0) {
+            $promedio_aprobados = $row["suma_notas_aprobadas"] / $row["aprobados"];
+            echo '<td>' . number_format($promedio_aprobados, 2) . '</td>';
+        } else {
+            echo '<td></td>'; 
+        }
         echo '</tr>';
     }
 
     // Consulta para obtener el promedio general de aprobados
     $queryPromedioGeneral = "SELECT AVG(examenes.ExaNota) AS promedio_general
-    FROM EXAMENES
-    WHERE examenes.ExaNota >= 7";
+    FROM EXAMENES ";
 
     $resultPromedioGeneral = $conn->query($queryPromedioGeneral);
 
